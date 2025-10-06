@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from sqlmodel import create_engine
+
 from models import Base as SQLModel
 
 postgresql_url = "postgresql://postgres:postgres@localhost:5432/postgres"
@@ -16,6 +17,7 @@ def get_session():
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
+
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)

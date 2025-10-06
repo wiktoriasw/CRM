@@ -1,17 +1,19 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Session
-from datetime import date, datetime
 
 import models
 import schemas
 
+
 def get_trip(db: Session, trip_uuid: str):
-    return db.query(models.Trip).filter(models.Trip.trip_uuid==trip_uuid).first()
+    return db.query(models.Trip).filter(models.Trip.trip_uuid == trip_uuid).first()
 
 
-def create_trip(db: Session, trip: schemas.TripCreate):
+def create_trip(db: Session, trip: schemas.TripCreate, user_uuid: str):
 
     db_trip = models.Trip(**trip.model_dump())
-    # db_trip.organizer_uuid = user_uuid
+    db_trip.user_uuid = user_uuid
     db.add(db_trip)
     db.commit()
     db.refresh(db_trip)
@@ -20,7 +22,7 @@ def create_trip(db: Session, trip: schemas.TripCreate):
 
 
 def modify_trip(db: Session, trip_modify: schemas.TripModify, trip_uuid: str):
-    db_trip = db.query(models.Trip).filter(models.Trip.trip_uuid==trip_uuid).first()
+    db_trip = db.query(models.Trip).filter(models.Trip.trip_uuid == trip_uuid).first()
 
     update_data = {
         k: v
@@ -36,12 +38,10 @@ def modify_trip(db: Session, trip_modify: schemas.TripModify, trip_uuid: str):
     return db_trip
 
 
-def delete_trip(db:Session, trip_uuid: str):
-    db_trip = db.query(models.Trip).filter(models.Trip.trip_uuid==trip_uuid).first()
-    print(db_trip.deleted_at)
+def delete_trip(db: Session, trip_uuid: str):
+    db_trip = db.query(models.Trip).filter(models.Trip.trip_uuid == trip_uuid).first()
     db_trip.deleted_at = datetime.today()
     db.commit()
     db.refresh(db_trip)
 
     return db_trip
-

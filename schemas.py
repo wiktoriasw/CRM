@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated
+from typing import Annotated, Optional
 
 from sqlmodel import SQLModel
 
@@ -13,7 +13,6 @@ class TripBase(SQLModel):
     payment_schedule: str
     meet_points: list
     background_photo: str
-    deleted_at: datetime
 
 
 class TripCreate(SQLModel):
@@ -26,6 +25,7 @@ class TripCreate(SQLModel):
     meet_points: list
     background_photo: str
 
+
 class TripModify(SQLModel):
     name: str | None = None
     category: str | None = None
@@ -35,4 +35,3 @@ class TripModify(SQLModel):
     payment_schedule: str | None = None
     meet_points: list | None = None
     background_photo: str | None = None
-    
