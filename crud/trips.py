@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from datetime import date
+from datetime import date, datetime
 
 import models
 import schemas
@@ -38,7 +38,8 @@ def modify_trip(db: Session, trip_modify: schemas.TripModify, trip_uuid: str):
 
 def delete_trip(db:Session, trip_uuid: str):
     db_trip = db.query(models.Trip).filter(models.Trip.trip_uuid==trip_uuid).first()
-    db_trip.deleted_at = date.today()
+    print(db_trip.deleted_at)
+    db_trip.deleted_at = datetime.today()
     db.commit()
     db.refresh(db_trip)
 

@@ -85,7 +85,7 @@ class Trip(Base):
     __tablename__ = "trip"
 
     trip_uuid = Column(String, primary_key=True, default=get_uuid4)
-    name = Column(String, nullable=False)
+    # name = Column(String, nullable=False)
     category = Column(String, nullable=False)
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
@@ -93,6 +93,7 @@ class Trip(Base):
     payment_schedule = Column(String, nullable=False)
     meet_points = Column(ARRAY(String), nullable=False)
     background_photo = Column(String, nullable=False)
+    deleted_at = Column(Date, nullable=True)
 
     participants = relationship("Participant", back_populates="trip")
     insurance_policy = relationship("InsurancePolicy", back_populates="trip")

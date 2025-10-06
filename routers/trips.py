@@ -47,6 +47,9 @@ def modify_trip(trip: TripModify, session: SessionDep, trip_uuid: str):
     db_trip = trips.get_trip(session, trip_uuid)
     if not db_trip:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
+    
+    if db_trip.deleted_at:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "Cannot modify trip that has been removed")
 
     return trips.modify_trip(session, trip, trip_uuid)
 
@@ -57,6 +60,9 @@ def delete_trip(session: SessionDep, trip_uuid: str):
     db_trip = trips.get_trip(session, trip_uuid)
     if not db_trip:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
+    
+    if db_trip.deleted_at:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "Trip has already been removed")
     
     return trips.delete_trip(session, trip_uuid)
     

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Annotated
 
 from sqlmodel import SQLModel
@@ -13,7 +13,7 @@ class TripBase(SQLModel):
     payment_schedule: str
     meet_points: list
     background_photo: str
-    deleted_at: date
+    deleted_at: datetime
 
 
 class TripCreate(SQLModel):
