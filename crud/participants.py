@@ -1,4 +1,92 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
 import models
 import schemas
+
+
+def get_participants(db: Session):
+    return db.query(models.Participant)
+
+
+def get_participant(db: Session, participant_uuid: str):
+    return (
+        db.query(models.Participant)
+        .filter(models.Participant.participant_uuid == participant_uuid)
+        .first()
+    )
+
+
+def participants_with_filters(
+    db: Session,
+    q: str | None = None,
+    limit: int = 3,
+    offset: int = 0,
+):
+    query = db.query(models.Participant).filter(models.Participant.deleted_at == None)
+
+    if q:
+        query = query.filter(
+            (models.Participant.name.ilike("%" + q + "%"))
+            | (models.Participant.name.ilike("%" + q + "%"))
+            | (models.Participant.surname.ilike("%" + q + "%"))
+        )
+
+    if limit > 5:
+        limit = 5
+
+    query = query.limit(limit).offset(offset)
+
+    db_participants = query.all()
+
+    return db_participants
+
+
+def create_participant(
+    db: Session, participant: schemas.ParticipantCreate, user_uuid: str
+):
+    db_participant = models.Participant(**participant.model_dump())
+    db_participant.user_uuid = user_uuid
+    db.add(db_participant)
+    db.commit()
+    db.refresh(db_participant)
+
+    return db_participant
+
+
+def modify_participant(
+    db: Session,
+    participant_modify: schemas.ParticipantModify,
+    participant_uuid: str,
+    user_uuid: str,
+):
+    db_participant = get_participant(db, participant_uuid)
+    db_participant.user_uuid = user_uuid
+
+    update_data = {
+        k: v
+        for k, v in participant_modify.model_dump(exclude_unset=True).items()
+        if v is not None
+    }
+
+    if update_data:
+        for key, value in update_data.items():
+            setattr(db_participant, key, value)
+        db.commit()
+
+    return db_participant
+
+
+def delete_participant(db: Session, participant_uuid: str, user_uuid: str):
+    db_participant = (
+        db.query(models.Participant)
+        .filter(models.Participant.participant_uuid == participant_uuid)
+        .first()
+    )
+    db_participant.user_uuid = user_uuid
+    db_participant.deleted_at = datetime.today()
+    db.commit()
+    db.refresh(db_participant)
+
+    return db_participant

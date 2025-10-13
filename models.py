@@ -64,6 +64,7 @@ class Participant(Base):
     chosen_meet_point = Column(String)
     group_code = Column(String)
     comments = Column(String)
+    deleted_at = Column(Date, nullable=True)
 
     trip = relationship("Trip", back_populates="participants")
     user = relationship("User", back_populates="participants")

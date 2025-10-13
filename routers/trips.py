@@ -1,9 +1,10 @@
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, HTTPException, status
 
 import models
-from crud import participants, trips
+from crud import trips
 from database import SessionDep
 from schemas import TripBase, TripCreate, TripModify
 
@@ -26,43 +27,25 @@ def get_trips(
     category: str | None = None,
     limit: int = 3,
     offset: int = 0,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
 ):
-    query = session.query(models.Trip).filter(models.Trip.deleted_at == None)
 
-    if q:
-        query = query.filter(
-            (models.Trip.name.ilike("%" + q + "%"))
-            | (models.Trip.description.ilike("%" + q + "%"))
+    if start_date and end_date and start_date > end_date:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, detail="Start date cannot be after end date"
         )
 
-        # query = query.filter(
-        #     or_(
-        #         models.Trip.name.ilike('%' + q + '%'),
-        #         models.Trip.description.ilike('%' + q + '%'),
-        #     )
-        # )
-
-    if category:
-        query = query.filter(models.Trip.category == category)
-
-    if limit > 5:
-        limit = 5
-
-    query = query.limit(limit).offset(offset)
-
-    db_trips = query.all()
-
-    return db_trips
+    return trips.trips_with_filters(
+        session, end_date, start_date, q, category, limit, offset
+    )
 
 
 @router.get("/{trip_uuid}", response_model=TripBase)
 def get_trip(trip_uuid: str, session: SessionDep):
-    db_trip = (
-        session.query(models.Trip)
-        .filter(models.Trip.trip_uuid == trip_uuid)
-        .filter(models.Trip.deleted_at == None)
-        .first()
-    )
+
+    db_trip = trips.get_not_deleted_trip(session, trip_uuid)
+
     if not db_trip:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
     return db_trip
@@ -101,4 +84,4 @@ def delete_trip(session: SessionDep, trip_uuid: str):
             status.HTTP_406_NOT_ACCEPTABLE, "Trip has already been removed"
         )
 
-    return trips.delete_trip(session, trip_uuid)
+    return trips.delete_trip(session, trip_uuid, user_uuid)
