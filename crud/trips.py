@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 import models
-import schemas
+from schemas.trips import TripCreate, TripModify
 
 
 def _get_not_deleted_trips(db: Session):
@@ -49,7 +49,7 @@ def trips_with_filters(
     return db_trips
 
 
-def create_trip(db: Session, trip: schemas.TripCreate, user_uuid: str):
+def create_trip(db: Session, trip: TripCreate, user_uuid: str):
 
     db_trip = models.Trip(**trip.model_dump())
     db_trip.user_uuid = user_uuid
@@ -61,7 +61,7 @@ def create_trip(db: Session, trip: schemas.TripCreate, user_uuid: str):
 
 
 def modify_trip(
-    db: Session, trip_modify: schemas.TripModify, trip_uuid: str, user_uuid: str
+    db: Session, trip_modify: TripModify, trip_uuid: str, user_uuid: str
 ):
     db_trip = get_trip(db, trip_uuid)
 

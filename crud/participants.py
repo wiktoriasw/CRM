@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 import models
-import schemas
+from schemas.participants import ParticipantModify, ParticipantCreate
 
 
 def _get_not_deleted_participants(db: Session):
@@ -48,7 +48,7 @@ def participants_with_filters(
 
 
 def create_participant(
-    db: Session, participant: schemas.ParticipantCreate, user_uuid: str
+    db: Session, participant: ParticipantCreate, user_uuid: str
 ):
     db_participant = models.Participant(**participant.model_dump())
     db_participant.user_uuid = user_uuid
@@ -61,7 +61,7 @@ def create_participant(
 
 def modify_participant(
     db: Session,
-    participant_modify: schemas.ParticipantModify,
+    participant_modify: ParticipantModify,
     participant_uuid: str,
     user_uuid: str,
 ):

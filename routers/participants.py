@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from crud import participants
 from database import SessionDep
-from schemas import ParticipantBase, ParticipantCreate, ParticipantModify
+from schemas.participants import ParticipantBase, ParticipantCreate, ParticipantModify
 
 router = APIRouter(prefix="/participants")
 user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"

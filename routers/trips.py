@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, status
 import models
 from crud import trips
 from database import SessionDep
-from schemas import TripBase, TripCreate, TripModify
+from schemas.trips import TripBase, TripCreate, TripModify
 
 # from sqlalchemy import or_
 
