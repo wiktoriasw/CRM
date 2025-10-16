@@ -5,7 +5,9 @@ from sqlalchemy import (Column, Date, DateTime, Enum, ForeignKey, Integer,
                         String, Table)
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.sql import func
 from sqlalchemy.types import DECIMAL
+from sqlmodel import SQLModel
 
 Base = declarative_base()
 
@@ -36,7 +38,11 @@ class User(Base):
 
     payments = relationship("Payment", back_populates="user")
     news = relationship("News", back_populates="user")
-    participants = relationship("Participant", back_populates="user")
+    participants = relationship(
+        "Participant",
+        back_populates="user",
+        foreign_keys="Participant.user_uuid",
+    )
 
 
 participants_payments_association_table = Table(
@@ -66,8 +72,15 @@ class Participant(Base):
     comments = Column(String)
     deleted_at = Column(Date, nullable=True)
 
+    deleted_by = Column(String, ForeignKey("user.user_uuid"), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=True, default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), nullable=True, default=func.now(), onupdate=func.now()
+    )
+    updated_by = Column(String, ForeignKey("user.user_uuid"), nullable=True)
+
     trip = relationship("Trip", back_populates="participants")
-    user = relationship("User", back_populates="participants")
+    user = relationship("User", back_populates="participants", foreign_keys=[user_uuid])
     payments = relationship(
         "Payment",
         secondary=participants_payments_association_table,
@@ -96,6 +109,12 @@ class Trip(Base):
     meet_points = Column(ARRAY(String), nullable=False)
     background_photo = Column(String, nullable=False)
     deleted_at = Column(Date, nullable=True)
+    deleted_by = Column(String, ForeignKey("user.user_uuid"), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=True, default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), nullable=True, default=func.now(), onupdate=func.now()
+    )
+    updated_by = Column(String, ForeignKey("user.user_uuid"), nullable=False)
     user_uuid = Column(String, ForeignKey("user.user_uuid"), nullable=False)
 
     participants = relationship("Participant", back_populates="trip")

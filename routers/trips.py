@@ -27,24 +27,28 @@ def get_trips(
     category: str | None = None,
     limit: int = 3,
     offset: int = 0,
-    start_date: datetime | None = None,
-    end_date: datetime | None = None,
+    from_start_date: datetime | None = None,
+    to_start_date: datetime | None = None,
 ):
 
-    if start_date and end_date and start_date > end_date:
+    if from_start_date and to_start_date and from_start_date > to_start_date:
         raise HTTPException(
-            status.HTTP_400_BAD_REQUEST, detail="Start date cannot be after end date"
+            status.HTTP_400_BAD_REQUEST,
+            detail="from_start_date cannot be after to_start_date",
         )
 
+    if limit > 5:
+        limit = 5
+
     return trips.trips_with_filters(
-        session, end_date, start_date, q, category, limit, offset
+        session, from_start_date, to_start_date, q, category, limit, offset
     )
 
 
 @router.get("/{trip_uuid}", response_model=TripBase)
 def get_trip(trip_uuid: str, session: SessionDep):
 
-    db_trip = trips.get_not_deleted_trip(session, trip_uuid)
+    db_trip = trips.get_trip(session, trip_uuid)
 
     if not db_trip:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
@@ -64,12 +68,7 @@ def modify_trip(trip: TripModify, session: SessionDep, trip_uuid: str):
     if not db_trip:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
 
-    if db_trip.deleted_at:
-        raise HTTPException(
-            status.HTTP_406_NOT_ACCEPTABLE, "Cannot modify trip that has been removed"
-        )
-
-    return trips.modify_trip(session, trip, trip_uuid)
+    return trips.modify_trip(session, trip, trip_uuid, user_uuid)
 
 
 @router.delete("/{trip_uuid}", response_model=TripBase)

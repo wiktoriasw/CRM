@@ -14,6 +14,8 @@ user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
 def get_partcipants(
     session: SessionDep, q: str | None = None, limit: int = 3, offset: int = 0
 ):
+    if limit > 5:
+        limit = 5
 
     return participants.participants_with_filters(session, q, limit, offset)
 
@@ -44,11 +46,6 @@ def modify_participant(
     if not db_participant:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Participant not exists")
 
-    if db_participant.deleted_at:
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN, "Cannot modify participant that has been removed"
-        )
-
     return participants.modify_participant(
         session, participant, participant_uuid, user_uuid
     )
@@ -60,10 +57,5 @@ def delete_participant(session: SessionDep, participant_uuid: str):
     db_participant = participants.get_participant(session, participant_uuid)
     if not db_participant:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Participant not found")
-
-    if db_participant.deleted_at:
-        raise HTTPException(
-            status.HTTP_406_NOT_ACCEPTABLE, "Participant has already been removed}"
-        )
 
     return participants.delete_participant(session, participant_uuid, user_uuid)
