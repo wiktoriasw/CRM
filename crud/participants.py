@@ -4,12 +4,12 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 import models
-from schemas.participants import ParticipantModify, ParticipantCreate
+from schemas.participants import ParticipantCreate, ParticipantModify
 
 
 def _get_not_deleted_participants(db: Session):
     return db.query(models.Participant).filter(models.Participant.deleted_at == None)
-
+#== na is
 
 def get_participant(db: Session, participant_uuid: str):
     return (
@@ -24,6 +24,7 @@ def participants_with_filters(
     q: str | None = None,
     limit: int = 3,
     offset: int = 0,
+    gender: str | None = None,
     meet_point: str | None = None,
 ):
     query = _get_not_deleted_participants(db)
@@ -33,8 +34,9 @@ def participants_with_filters(
             (models.Participant.name.ilike("%" + q + "%"))
             | (models.Participant.surname.ilike("%" + q + "%"))
         )
+    if gender:
+        query = query.filter(models.Participant.gender == gender)
 
-    # filtr do płci i chosen meet point
     if meet_point == "NULL":
         query = query.filter(models.Participant.chosen_meet_point == None)
     elif meet_point:
@@ -47,9 +49,7 @@ def participants_with_filters(
     return db_participants
 
 
-def create_participant(
-    db: Session, participant: ParticipantCreate, user_uuid: str
-):
+def create_participant(db: Session, participant: ParticipantCreate, user_uuid: str):
     db_participant = models.Participant(**participant.model_dump())
     db_participant.user_uuid = user_uuid
     db.add(db_participant)

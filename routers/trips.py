@@ -27,10 +27,10 @@ def get_trips(
     category: str | None = None,
     limit: int = 3,
     offset: int = 0,
+    trip_duration_in_days: int | None = None,
     from_start_date: datetime | None = None,
     to_start_date: datetime | None = None,
 ):
-
     if from_start_date and to_start_date and from_start_date > to_start_date:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
@@ -41,7 +41,14 @@ def get_trips(
         limit = 5
 
     return trips.trips_with_filters(
-        session, from_start_date, to_start_date, q, category, limit, offset
+        session,
+        from_start_date,
+        to_start_date,
+        trip_duration_in_days,
+        q,
+        category,
+        limit,
+        offset,
     )
 
 
@@ -77,10 +84,5 @@ def delete_trip(session: SessionDep, trip_uuid: str):
     db_trip = trips.get_trip(session, trip_uuid)
     if not db_trip:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
-
-    if db_trip.deleted_at:
-        raise HTTPException(
-            status.HTTP_406_NOT_ACCEPTABLE, "Trip has already been removed"
-        )
 
     return trips.delete_trip(session, trip_uuid, user_uuid)

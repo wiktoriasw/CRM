@@ -1,5 +1,6 @@
-from sqlmodel import SQLModel
 from datetime import date
+
+from sqlmodel import SQLModel
 
 
 class TripBase(SQLModel):

@@ -1,22 +1,29 @@
-
 from sqlmodel import SQLModel
 
 
-class User(SQLModel):
+class UserBase(SQLModel):
     email: str
+
+
+class UserWithRole(UserBase):
     role: str
 
-class User(SQLModel):
-    username: str
-    email: str
-    full_name: str
 
-class UserInDB(User):
+class UserModifyPassword(SQLModel):
+    old_password: str
+    new_password: str
+
+
+class UserInDB(UserBase):
     hashed_password: str
 
 
-class UserCreate(SQLModel):
-    email: str
+class UserCreate(UserBase):
+    password: str
+
+
+class UserModify(UserCreate):
+    pass
 
 
 class Token(SQLModel):
@@ -26,6 +33,3 @@ class Token(SQLModel):
 
 class TokenData(SQLModel):
     username: str | None = None
-
-
-

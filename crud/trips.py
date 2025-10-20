@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 import models
@@ -19,6 +19,7 @@ def trips_with_filters(
     db: Session,
     from_start_date: datetime | None = None,
     to_start_date: datetime | None = None,
+    trip_duration_in_days: int | None = None,
     q: str | None = None,
     category: str | None = None,
     limit: int = 3,
@@ -38,6 +39,11 @@ def trips_with_filters(
 
     if to_start_date:
         query = query.filter(models.Trip.start_date <= to_start_date)
+
+    if trip_duration_in_days:
+        query = query.filter(
+            (models.Trip.end_date - models.Trip.start_date) == trip_duration_in_days
+        )
 
     if category:
         query = query.filter(models.Trip.category == category)
@@ -60,9 +66,7 @@ def create_trip(db: Session, trip: TripCreate, user_uuid: str):
     return db_trip
 
 
-def modify_trip(
-    db: Session, trip_modify: TripModify, trip_uuid: str, user_uuid: str
-):
+def modify_trip(db: Session, trip_modify: TripModify, trip_uuid: str, user_uuid: str):
     db_trip = get_trip(db, trip_uuid)
 
     update_data = {

@@ -2,7 +2,7 @@ import enum
 import uuid
 
 from sqlalchemy import (Column, Date, DateTime, Enum, ForeignKey, Integer,
-                        String, Table)
+                        Interval, String, Table)
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
@@ -28,7 +28,15 @@ class UserGender(enum.Enum):
     unknown = 3
 
 
-class User(Base):
+class TimestampMixin:
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=True, default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), nullable=True, default=func.now(), onupdate=func.now()
+    )
+
+
+class User(TimestampMixin, Base):
     __tablename__ = "user"
 
     user_uuid = Column(String, primary_key=True, default=get_uuid4)
@@ -55,7 +63,7 @@ participants_payments_association_table = Table(
 )
 
 
-class Participant(Base):
+class Participant(TimestampMixin, Base):
     __tablename__ = "participant"
 
     participant_uuid = Column(String, primary_key=True, default=get_uuid4)
@@ -70,13 +78,7 @@ class Participant(Base):
     chosen_meet_point = Column(String)
     group_code = Column(String)
     comments = Column(String)
-    deleted_at = Column(Date, nullable=True)
-
     deleted_by = Column(String, ForeignKey("user.user_uuid"), nullable=True)
-    created_at = Column(DateTime(timezone=True), nullable=True, default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), nullable=True, default=func.now(), onupdate=func.now()
-    )
     updated_by = Column(String, ForeignKey("user.user_uuid"), nullable=True)
 
     trip = relationship("Trip", back_populates="participants")
@@ -96,7 +98,7 @@ trips_surveys = Table(
 )
 
 
-class Trip(Base):
+class Trip(TimestampMixin, Base):
     __tablename__ = "trip"
 
     trip_uuid = Column(String, primary_key=True, default=get_uuid4)
@@ -108,12 +110,7 @@ class Trip(Base):
     payment_schedule = Column(String, nullable=False)
     meet_points = Column(ARRAY(String), nullable=False)
     background_photo = Column(String, nullable=False)
-    deleted_at = Column(Date, nullable=True)
     deleted_by = Column(String, ForeignKey("user.user_uuid"), nullable=False)
-    created_at = Column(DateTime(timezone=True), nullable=True, default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), nullable=True, default=func.now(), onupdate=func.now()
-    )
     updated_by = Column(String, ForeignKey("user.user_uuid"), nullable=False)
     user_uuid = Column(String, ForeignKey("user.user_uuid"), nullable=False)
 

@@ -2,22 +2,49 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException, status
 
+import models
 from crud import participants
 from database import SessionDep
-from schemas.participants import ParticipantBase, ParticipantCreate, ParticipantModify
+from schemas.participants import (ParticipantBase, ParticipantCreate,
+                                  ParticipantModify)
 
 router = APIRouter(prefix="/participants")
 user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
 
 
+def parse_participant(participant: models.Participant) -> models.Participant:
+    return {
+        **participant.__dict__,
+        "gender": participant.gender.name,
+    }
+
+
 @router.get("/", response_model=List[ParticipantBase])
 def get_partcipants(
-    session: SessionDep, q: str | None = None, limit: int = 3, offset: int = 0
+    session: SessionDep,
+    q: str | None = None,
+    gender: str | None = None,
+    meet_point: str | None = None,
+    limit: int = 3,
+    offset: int = 0,
 ):
     if limit > 5:
         limit = 5
 
-    return participants.participants_with_filters(session, q, limit, offset)
+    if gender:
+        gender = gender.lower()
+
+        if gender not in models.UserGender.__members__:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Given gender not found"
+            )
+
+    return map(
+        parse_participant,
+        participants.participants_with_filters(
+            session, q, limit, offset, gender, meet_point
+        ),
+    )
 
 
 @router.get("/{participant_uuid}", response_model=ParticipantBase)
@@ -27,13 +54,15 @@ def get_participant(session: SessionDep, participant_uuid: str):
     if not db_participant:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Participant not found")
 
-    return db_participant
+    return parse_participant(db_participant)
 
 
 @router.post("/", response_model=ParticipantCreate)
 def create_participant(participant: ParticipantCreate, session: SessionDep):
 
-    return participants.create_participant(session, participant, user_uuid)
+    return parse_participant(
+        participants.create_participant(session, participant, user_uuid)
+    )
 
 
 @router.patch("/{participant_uuid}", response_model=ParticipantModify)
