@@ -5,14 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 
+from configuration import ACCESS_TOKEN_EXPIRE_MINUTES
 from crud import users
 from database import SessionDep
 from schemas.users import (Token, UserBase, UserCreate, UserModifyPassword,
                            UserWithRole)
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-ALGORITHM = "HS256"
 
 router = APIRouter()
 

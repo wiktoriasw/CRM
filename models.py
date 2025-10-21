@@ -1,13 +1,11 @@
 import enum
 import uuid
 
-from sqlalchemy import (Column, Date, DateTime, Enum, ForeignKey, Integer,
-                        Interval, String, Table)
+from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, String, Table
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.types import DECIMAL
-from sqlmodel import SQLModel
 
 Base = declarative_base()
 

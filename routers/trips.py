@@ -8,8 +8,6 @@ from crud import trips
 from database import SessionDep
 from schemas.trips import TripBase, TripCreate, TripModify
 
-# from sqlalchemy import or_
-
 router = APIRouter(prefix="/trips")
 user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
 

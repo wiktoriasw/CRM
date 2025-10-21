@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -9,7 +7,7 @@ from schemas.participants import ParticipantCreate, ParticipantModify
 
 def _get_not_deleted_participants(db: Session):
     return db.query(models.Participant).filter(models.Participant.deleted_at == None)
-#== na is
+
 
 def get_participant(db: Session, participant_uuid: str):
     return (
