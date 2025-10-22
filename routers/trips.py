@@ -1,12 +1,13 @@
 from datetime import datetime
-from typing import List
+from typing import List, Annotated
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 
 import models
-from crud import trips
+from crud import trips, users
 from database import SessionDep
 from schemas.trips import TripBase, TripCreate, TripModify
+from schemas.users import User
 
 router = APIRouter(prefix="/trips")
 user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
@@ -51,8 +52,10 @@ def get_trips(
 
 
 @router.get("/{trip_uuid}", response_model=TripBase)
-def get_trip(trip_uuid: str, session: SessionDep):
-
+def get_trip(
+    trip_uuid: str,
+    session: SessionDep):
+    
     db_trip = trips.get_trip(session, trip_uuid)
 
     if not db_trip:
@@ -61,26 +64,36 @@ def get_trip(trip_uuid: str, session: SessionDep):
 
 
 @router.post("", response_model=TripCreate)
-def create_trip(trip: TripCreate, session: SessionDep):
+def create_trip(
+    trip: TripCreate,
+    session: SessionDep,
+    current_user: Annotated[User, Depends(users.get_current_user)]):
 
-    return trips.create_trip(session, trip, user_uuid)
+    return trips.create_trip(session, trip, current_user.user_uuid)
 
 
 @router.patch("/{trip_uuid}", response_model=TripModify)
-def modify_trip(trip: TripModify, session: SessionDep, trip_uuid: str):
+def modify_trip(
+    trip: TripModify,
+    session: SessionDep,
+    current_user: Annotated[User, Depends(users.get_current_user)],
+    trip_uuid: str):
 
     db_trip = trips.get_trip(session, trip_uuid)
     if not db_trip:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
 
-    return trips.modify_trip(session, trip, trip_uuid, user_uuid)
+    return trips.modify_trip(session, trip, trip_uuid, current_user.user_uuid)
 
 
 @router.delete("/{trip_uuid}", response_model=TripBase)
-def delete_trip(session: SessionDep, trip_uuid: str):
+def delete_trip(
+    session: SessionDep,
+    current_user: Annotated[User, Depends(users.get_current_user)],
+    trip_uuid: str):
 
     db_trip = trips.get_trip(session, trip_uuid)
     if not db_trip:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
 
-    return trips.delete_trip(session, trip_uuid, user_uuid)
+    return trips.delete_trip(session, trip_uuid, current_user.user_uuid)
