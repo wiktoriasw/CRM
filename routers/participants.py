@@ -7,6 +7,7 @@ from crud import participants
 from database import SessionDep
 from schemas.participants import (ParticipantBase, ParticipantCreate,
                                   ParticipantModify)
+from sqlalchemy.exc import DataError
 
 router = APIRouter(prefix="/participants")
 user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
@@ -63,9 +64,12 @@ def get_participant(session: SessionDep, participant_uuid: str):
 @router.post("/", response_model=ParticipantCreate)
 def create_participant(participant: ParticipantCreate, session: SessionDep):
 
-    return parse_participant(
+    try:
+        return parse_participant(
         participants.create_participant(session, participant, user_uuid)
     )
+    except DataError:
+        raise(HTTPException(status.HTTP_406_NOT_ACCEPTABLE, 'Use lowercase for the gender'))
 
 
 @router.patch("/{participant_uuid}", response_model=ParticipantModify)
