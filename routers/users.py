@@ -10,7 +10,7 @@ from configuration import ACCESS_TOKEN_EXPIRE_MINUTES
 from crud import users
 from database import SessionDep
 from schemas.users import (Status, Token, UserBase, UserCreate,
-                           UserModifyPassword, UserWithRole)
+                           UserModifyPassword, UserModifyRole, UserModifyEmail, UserWithRole)
 
 router = APIRouter()
 
@@ -55,7 +55,7 @@ def create_user(user: UserCreate, session: SessionDep):
     if db_user:
         raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "The email already exists")
 
-    return users.create_user(session, user)
+    return parse_user(users.create_user(session, user))
 
 
 @router.delete("/users/{user_uuid}", response_model=UserWithRole)
@@ -65,29 +65,30 @@ def delete_user(session: SessionDep, user_uuid: str):
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
-    return users.delete_user(session, user_uuid)
+    return parse_user(users.delete_user(session, user_uuid))
 
 
 @router.patch("/users/{user_uuid}/role", response_model=UserWithRole)
-def change_user_role(session: SessionDep, user_uuid: str, new_role: str):
+def change_user_role( user: UserModifyRole, session: SessionDep, user_uuid: str):
 
     db_user = users.get_user_by_uuid(session, user_uuid)
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
-    return users.change_role(session, user_uuid, new_role)
+    return parse_user(users.change_role(session, user_uuid, user.role))
 
 
-@router.patch("/users/{user_uuid}/email")
-def change_user_email(session: SessionDep, user_uuid: str, new_email: str):
+@router.patch("/users/{user_uuid}/email", response_model=Status)
+def change_user_email(user: UserModifyEmail, session: SessionDep, user_uuid: str):
     db_user = users.get_user_by_uuid(session, user_uuid)
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
     try:
-        return users.change_email(session, user_uuid, new_email)
+        users.change_email(session, user_uuid, user.new_email)
+        return {"status": "ok"}
     except IntegrityError:
         raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "Email already exists")
 

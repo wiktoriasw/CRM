@@ -13,13 +13,17 @@ class UserWithRole(UserBase):
     role: str
 
 
+class UserModifyEmail(SQLModel):
+    new_email: str
+
+
+class UserModifyRole(SQLModel):
+    role: str
+
+
 class UserModifyPassword(SQLModel):
     old_password: str
     new_password: str
-
-
-class UserInDB(UserBase):
-    hashed_password: str
 
 
 class UserCreate(UserBase):
