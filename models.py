@@ -34,6 +34,11 @@ class TimestampMixin:
     )
 
 
+class AuditUserMixin:
+    deleted_by = Column(String, ForeignKey("user.user_uuid"), nullable=True)
+    updated_by = Column(String, ForeignKey("user.user_uuid"), nullable=True)
+
+
 class User(TimestampMixin, Base):
     __tablename__ = "user"
 
@@ -61,7 +66,7 @@ participants_payments_association_table = Table(
 )
 
 
-class Participant(TimestampMixin, Base):
+class Participant(TimestampMixin, AuditUserMixin, Base):
     __tablename__ = "participant"
 
     participant_uuid = Column(String, primary_key=True, default=get_uuid4)
@@ -76,8 +81,6 @@ class Participant(TimestampMixin, Base):
     chosen_meet_point = Column(String)
     group_code = Column(String)
     comments = Column(String)
-    deleted_by = Column(String, ForeignKey("user.user_uuid"), nullable=True)
-    updated_by = Column(String, ForeignKey("user.user_uuid"), nullable=True)
 
     trip = relationship("Trip", back_populates="participants")
     user = relationship("User", back_populates="participants", foreign_keys=[user_uuid])
@@ -96,7 +99,7 @@ trips_surveys = Table(
 )
 
 
-class Trip(TimestampMixin, Base):
+class Trip(TimestampMixin, AuditUserMixin, Base):
     __tablename__ = "trip"
 
     trip_uuid = Column(String, primary_key=True, default=get_uuid4)
@@ -108,8 +111,6 @@ class Trip(TimestampMixin, Base):
     payment_schedule = Column(String, nullable=False)
     meet_points = Column(ARRAY(String), nullable=False)
     background_photo = Column(String, nullable=False)
-    deleted_by = Column(String, ForeignKey("user.user_uuid"), nullable=False)
-    updated_by = Column(String, ForeignKey("user.user_uuid"), nullable=False)
     user_uuid = Column(String, ForeignKey("user.user_uuid"), nullable=False)
 
     participants = relationship("Participant", back_populates="trip")
