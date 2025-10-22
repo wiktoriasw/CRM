@@ -5,13 +5,21 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 
+import models
 from configuration import ACCESS_TOKEN_EXPIRE_MINUTES
 from crud import users
 from database import SessionDep
-from schemas.users import (Token, UserBase, UserCreate, UserModifyPassword,
-                           UserWithRole)
+from schemas.users import (Status, Token, UserBase, UserCreate,
+                           UserModifyPassword, UserWithRole)
 
 router = APIRouter()
+
+
+def parse_user(user: models.User) -> models.User:
+    return {
+        **user.__dict__,
+        "role": user.role.name,
+    }
 
 
 @router.post("/token")
@@ -38,7 +46,7 @@ def login_for_access_token(
 def read_users_me(
     current_user: Annotated[UserBase, Depends(users.get_current_user)],
 ):
-    return current_user
+    return parse_user(current_user)
 
 
 @router.post("/users/", response_model=UserWithRole)
@@ -84,7 +92,7 @@ def change_user_email(session: SessionDep, user_uuid: str, new_email: str):
         raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "Email already exists")
 
 
-@router.patch("/users/{user_uuid}/password")
+@router.patch("/users/{user_uuid}/password", response_model=Status)
 def change_user_password(
     user_modify_password: UserModifyPassword, user_uuid: str, session: SessionDep
 ):
@@ -92,10 +100,12 @@ def change_user_password(
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
-    
-    if not users.verify_password(user_modify_password.old_password, db_user.hashed_password):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Incorrect current password.')
+
+    if not users.verify_password(
+        user_modify_password.old_password, db_user.hashed_password
+    ):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Incorrect current password.")
 
     users.change_password(session, user_uuid, user_modify_password.new_password)
 
-    return {"message": "Password updated successfully."}
+    return {"status": "Ok"}

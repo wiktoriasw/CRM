@@ -1,6 +1,10 @@
 from sqlmodel import SQLModel
 
 
+class Status(SQLModel):
+    status: str
+
+
 class UserBase(SQLModel):
     email: str
 
