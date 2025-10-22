@@ -92,5 +92,10 @@ def change_user_password(
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    
+    if not users.verify_password(user_modify_password.old_password, db_user.hashed_password):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Incorrect current password.')
 
-    return users.change_password(session, user_uuid, user_modify_password.new_password)
+    users.change_password(session, user_uuid, user_modify_password.new_password)
+
+    return {"message": "Password updated successfully."}
