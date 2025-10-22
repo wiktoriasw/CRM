@@ -39,6 +39,9 @@ def get_partcipants(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Given gender not found"
             )
 
+    if meet_point:
+        meet_point = meet_point.lower()    
+
     return map(
         parse_participant,
         participants.participants_with_filters(
@@ -87,4 +90,6 @@ def delete_participant(session: SessionDep, participant_uuid: str):
     if not db_participant:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Participant not found")
 
-    return participants.delete_participant(session, participant_uuid, user_uuid)
+    return parse_participant(
+        participants.delete_participant(session, participant_uuid, user_uuid)
+    )

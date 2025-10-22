@@ -34,11 +34,11 @@ def participants_with_filters(
         )
     if gender:
         query = query.filter(models.Participant.gender == gender)
-
+    
     if meet_point == "NULL":
-        query = query.filter(models.Participant.chosen_meet_point == None)
+        query = query.filter(func.lower(models.Participant.chosen_meet_point) == None)
     elif meet_point:
-        query = query.filter(models.Participant.chosen_meet_point == meet_point)
+        query = query.filter(func.lower(models.Participant.chosen_meet_point) == meet_point)
 
     query = query.limit(limit).offset(offset)
 
