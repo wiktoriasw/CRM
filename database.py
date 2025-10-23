@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from sqlmodel import create_engine
 
-from models import Base as SQLModel
+from models.utils import Base as SQLModel
 
 postgresql_url = "postgresql://postgres:postgres@localhost:5432/postgres"
 

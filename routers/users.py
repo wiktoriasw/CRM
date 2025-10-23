@@ -5,17 +5,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 
-import models
 from configuration import ACCESS_TOKEN_EXPIRE_MINUTES
 from crud import users
 from database import SessionDep
+from models.users import User as UserModel
 from schemas.users import (Status, Token, UserBase, UserCreate,
-                           UserModifyPassword, UserModifyRole, UserModifyEmail, UserWithRole)
+                           UserModifyEmail, UserModifyPassword, UserModifyRole,
+                           UserWithRole)
 
 router = APIRouter()
 
 
-def parse_user(user: models.User) -> models.User:
+def parse_user(user: UserModel) -> UserModel:
     return {
         **user.__dict__,
         "role": user.role.name,
@@ -51,6 +52,7 @@ def read_users_me(
 
 @router.post("/users/", response_model=UserWithRole)
 def create_user(user: UserCreate, session: SessionDep):
+
     db_user = users.get_user_by_email(session, user.email)
     if db_user:
         raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "The email already exists")
@@ -59,28 +61,44 @@ def create_user(user: UserCreate, session: SessionDep):
 
 
 @router.delete("/users/{user_uuid}", response_model=UserWithRole)
-def delete_user(session: SessionDep, user_uuid: str):
+def delete_user(
+    session: SessionDep,
+    current_user: Annotated[UserBase, Depends(users.get_current_user)],
+    user_uuid: str,
+):
+
     db_user = users.get_user_by_uuid(session, user_uuid)
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
-    return parse_user(users.delete_user(session, user_uuid))
+    return parse_user(users.delete_user(session, current_user.user_uuid))
 
 
 @router.patch("/users/{user_uuid}/role", response_model=UserWithRole)
-def change_user_role( user: UserModifyRole, session: SessionDep, user_uuid: str):
+def change_user_role(
+    user: UserModifyRole,
+    current_user: Annotated[UserBase, Depends(users.get_current_user)],
+    session: SessionDep,
+    user_uuid: str,
+):
 
     db_user = users.get_user_by_uuid(session, user_uuid)
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
-    return parse_user(users.change_role(session, user_uuid, user.role))
+    return parse_user(users.change_role(session, current_user.user_uuid, user.role))
 
 
 @router.patch("/users/{user_uuid}/email", response_model=Status)
-def change_user_email(user: UserModifyEmail, session: SessionDep, user_uuid: str):
+def change_user_email(
+    user: UserModifyEmail,
+    current_user: Annotated[UserBase, Depends(users.get_current_user)],
+    session: SessionDep,
+    user_uuid: str,
+):
+
     db_user = users.get_user_by_uuid(session, user_uuid)
 
     if not db_user:
@@ -95,12 +113,20 @@ def change_user_email(user: UserModifyEmail, session: SessionDep, user_uuid: str
 
 @router.patch("/users/{user_uuid}/password", response_model=Status)
 def change_user_password(
-    user_modify_password: UserModifyPassword, user_uuid: str, session: SessionDep
+    user_modify_password: UserModifyPassword,
+    user_uuid: str,
+    current_user: Annotated[UserBase, Depends(users.get_current_user)],
+    session: SessionDep,
 ):
     db_user = users.get_user_by_uuid(session, user_uuid)
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+
+    if not db_user.user_uuid == current_user.user_uuid:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, "You can change only your own password"
+        )
 
     if not users.verify_password(
         user_modify_password.old_password, db_user.hashed_password

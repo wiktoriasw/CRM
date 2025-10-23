@@ -1,18 +1,20 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-import models
+from models import participants
 from schemas.participants import ParticipantCreate, ParticipantModify
 
 
 def _get_not_deleted_participants(db: Session):
-    return db.query(models.Participant).filter(models.Participant.deleted_at == None)
+    return db.query(participants.Participant).filter(
+        participants.Participant.deleted_at == None
+    )
 
 
 def get_participant(db: Session, participant_uuid: str):
     return (
         _get_not_deleted_participants(db)
-        .filter(models.Participant.participant_uuid == participant_uuid)
+        .filter(participants.Participant.participant_uuid == participant_uuid)
         .first()
     )
 
@@ -29,16 +31,20 @@ def participants_with_filters(
 
     if q:
         query = query.filter(
-            (models.Participant.name.ilike("%" + q + "%"))
-            | (models.Participant.surname.ilike("%" + q + "%"))
+            (participants.Participant.name.ilike("%" + q + "%"))
+            | (participants.Participant.surname.ilike("%" + q + "%"))
         )
     if gender:
-        query = query.filter(models.Participant.gender == gender)
-    
+        query = query.filter(participants.Participant.gender == gender)
+
     if meet_point == "NULL":
-        query = query.filter(func.lower(models.Participant.chosen_meet_point) == None)
+        query = query.filter(
+            func.lower(participants.Participant.chosen_meet_point) == None
+        )
     elif meet_point:
-        query = query.filter(func.lower(models.Participant.chosen_meet_point) == meet_point)
+        query = query.filter(
+            func.lower(participants.Participant.chosen_meet_point) == meet_point
+        )
 
     query = query.limit(limit).offset(offset)
 
@@ -48,7 +54,7 @@ def participants_with_filters(
 
 
 def create_participant(db: Session, participant: ParticipantCreate, user_uuid: str):
-    db_participant = models.Participant(**participant.model_dump())
+    db_participant = participants.Participant(**participant.model_dump())
     db_participant.user_uuid = user_uuid
     db.add(db_participant)
     db.commit()

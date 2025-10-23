@@ -3,16 +3,16 @@ from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-import models
+from models import trips
 from schemas.trips import TripCreate, TripModify
 
 
 def _get_not_deleted_trips(db: Session):
-    return db.query(models.Trip).filter(models.Trip.deleted_at == None)
+    return db.query(trips.Trip).filter(trips.Trip.deleted_at == None)
 
 
 def get_trip(db: Session, trip_uuid: str):
-    return _get_not_deleted_trips(db).filter(models.Trip.trip_uuid == trip_uuid).first()
+    return _get_not_deleted_trips(db).filter(trips.Trip.trip_uuid == trip_uuid).first()
 
 
 def trips_with_filters(
@@ -30,23 +30,23 @@ def trips_with_filters(
 
     if q:
         query = query.filter(
-            (models.Trip.name.ilike("%" + q + "%"))
-            | (models.Trip.description.ilike("%" + q + "%"))
+            (trips.Trip.name.ilike("%" + q + "%"))
+            | (trips.Trip.description.ilike("%" + q + "%"))
         )
 
     if from_start_date:
-        query = query.filter(models.Trip.start_date >= from_start_date)
+        query = query.filter(trips.Trip.start_date >= from_start_date)
 
     if to_start_date:
-        query = query.filter(models.Trip.start_date <= to_start_date)
+        query = query.filter(trips.Trip.start_date <= to_start_date)
 
     if trip_duration_in_days:
         query = query.filter(
-            (models.Trip.end_date - models.Trip.start_date) == trip_duration_in_days
+            (trips.Trip.end_date - trips.Trip.start_date) == trip_duration_in_days
         )
 
     if category:
-        query = query.filter(models.Trip.category == category)
+        query = query.filter(trips.Trip.category == category)
 
     query = query.limit(limit).offset(offset)
 
@@ -57,7 +57,7 @@ def trips_with_filters(
 
 def create_trip(db: Session, trip: TripCreate, user_uuid: str):
 
-    db_trip = models.Trip(**trip.model_dump())
+    db_trip = trips.Trip(**trip.model_dump())
     db_trip.user_uuid = user_uuid
     db.add(db_trip)
     db.commit()

@@ -5,6 +5,11 @@ class Status(SQLModel):
     status: str
 
 
+class User(SQLModel):
+    user_uuid: str
+    role: str
+
+
 class UserBase(SQLModel):
     email: str
 

@@ -8,9 +8,9 @@ from pwdlib import PasswordHash
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-import models
 from configuration import ALGORITHM, SECRET_KEY
 from database import SessionDep
+from models import users
 from schemas.users import TokenData, UserCreate
 
 password_hash = PasswordHash.recommended()
@@ -26,20 +26,20 @@ def get_password_hash(password):
 
 
 def _get_not_deleted_user(db: Session):
-    return db.query(models.User).filter(models.User.deleted_at == None)
+    return db.query(users.User).filter(users.User.deleted_at == None)
 
 
 def get_user_by_email(db, email: str):
-    return _get_not_deleted_user(db).filter(models.User.email == email).first()
+    return _get_not_deleted_user(db).filter(users.User.email == email).first()
 
 
 def get_user_by_uuid(db, user_uuid: str):
-    return _get_not_deleted_user(db).filter(models.User.user_uuid == user_uuid).first()
+    return _get_not_deleted_user(db).filter(users.User.user_uuid == user_uuid).first()
 
 
 def create_user(db, user: UserCreate):
     hashed_pw = get_password_hash(user.password)
-    user = models.User(
+    user = users.User(
         email=user.email,
         hashed_password=hashed_pw,
     )
