@@ -60,7 +60,7 @@ def create_user(user: UserCreate, session: SessionDep):
     return parse_user(users.create_user(session, user))
 
 
-@router.delete("/users/{user_uuid}", response_model=UserWithRole)
+@router.delete("/users/{user_uuid}", response_model=UserWithRole) #admin
 def delete_user(
     session: SessionDep,
     current_user: Annotated[UserBase, Depends(users.get_current_user)],
@@ -147,3 +147,5 @@ def change_user_password(
     users.change_password(session, user_uuid, user_modify_password.new_password)
 
     return {"status": "Ok"}
+
+#get users ->admin
