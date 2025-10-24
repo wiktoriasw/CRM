@@ -52,7 +52,9 @@ def get_trips(
 
 
 @router.get("/{trip_uuid}", response_model=TripBase)
-def get_trip(trip_uuid: str, session: SessionDep):
+def get_trip(
+    trip_uuid: str,
+    session: SessionDep):
 
     db_trip = trips.get_trip(session, trip_uuid)
 
@@ -65,7 +67,7 @@ def get_trip(trip_uuid: str, session: SessionDep):
 def create_trip(
     trip: TripCreate,
     session: SessionDep,
-    current_user: Annotated[User, Depends(users.get_current_user)],
+    current_user: Annotated[User, Depends(users.get_admin_user)],
 ):
 
     return trips.create_trip(session, trip, current_user.user_uuid)
@@ -75,7 +77,7 @@ def create_trip(
 def modify_trip(
     trip: TripModify,
     session: SessionDep,
-    current_user: Annotated[User, Depends(users.get_current_user)],
+    current_user: Annotated[User, Depends(users.get_admin_user)],
     trip_uuid: str,
 ):
 
@@ -89,7 +91,7 @@ def modify_trip(
 @router.delete("/{trip_uuid}", response_model=TripBase)
 def delete_trip(
     session: SessionDep,
-    current_user: Annotated[User, Depends(users.get_current_user)],
+    current_user: Annotated[User, Depends(users.get_admin_user)],
     trip_uuid: str,
 ):
 
