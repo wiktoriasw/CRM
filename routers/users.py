@@ -78,7 +78,7 @@ def delete_user(
 @router.patch("/users/{user_uuid}/role", response_model=UserWithRole)
 def change_user_role(
     user: UserModifyRole,
-    current_user: Annotated[UserBase, Depends(users.get_current_user)],
+    current_user: Annotated[UserBase, Depends(users.get_admin_user)],
     session: SessionDep,
     user_uuid: str,
 ):
@@ -87,8 +87,13 @@ def change_user_role(
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    
+    if current_user.user_uuid == user_uuid:
+        raise HTTPException(status.HTTP_403_FORBIDDEN,
+            "Admin can't change their own role",
+        )
 
-    return parse_user(users.change_role(session, current_user.user_uuid, user.role))
+    return parse_user(users.change_role(session, user_uuid, user.new_role))
 
 
 @router.patch("/users/{user_uuid}/email", response_model=Status)
@@ -100,6 +105,12 @@ def change_user_email(
 ):
 
     db_user = users.get_user_by_uuid(session, user_uuid)
+
+    if db_user.user_uuid != current_user.user_uuid:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, "You can only change your own email address"
+        )
+
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
@@ -123,7 +134,7 @@ def change_user_password(
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
-    if not db_user.user_uuid == current_user.user_uuid:
+    if db_user.user_uuid != current_user.user_uuid:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN, "You can change only your own password"
         )

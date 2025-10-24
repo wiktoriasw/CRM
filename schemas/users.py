@@ -1,5 +1,7 @@
 from sqlmodel import SQLModel
 
+from models.users import UserRole
+
 
 class Status(SQLModel):
     status: str
@@ -23,7 +25,7 @@ class UserModifyEmail(SQLModel):
 
 
 class UserModifyRole(SQLModel):
-    role: str
+    new_role: UserRole
 
 
 class UserModifyPassword(SQLModel):
