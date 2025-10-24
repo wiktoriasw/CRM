@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -9,9 +9,17 @@ from configuration import ACCESS_TOKEN_EXPIRE_MINUTES
 from crud import users
 from database import SessionDep
 from models.users import User as UserModel
-from schemas.users import (Status, Token, UserBase, UserCreate,
-                           UserModifyEmail, UserModifyPassword, UserModifyRole,
-                           UserWithRole)
+from schemas.users import (
+    Status,
+    Token,
+    UserBase,
+    UserCreate,
+    User,
+    UserModifyEmail,
+    UserModifyPassword,
+    UserModifyRole,
+    UserWithRole,
+)
 
 router = APIRouter()
 
@@ -50,6 +58,13 @@ def read_users_me(
     return parse_user(current_user)
 
 
+@router.get("/users", response_model=List[UserWithRole])
+def get_users(
+    session: SessionDep, _: Annotated[UserBase, Depends(users.get_admin_user)]
+):
+    return map(parse_user, users.get_users(session))
+
+
 @router.post("/users/", response_model=UserWithRole)
 def create_user(user: UserCreate, session: SessionDep):
 
@@ -60,7 +75,7 @@ def create_user(user: UserCreate, session: SessionDep):
     return parse_user(users.create_user(session, user))
 
 
-@router.delete("/users/{user_uuid}", response_model=UserWithRole) #admin
+@router.delete("/users/{user_uuid}", response_model=UserWithRole)  # admin
 def delete_user(
     session: SessionDep,
     current_user: Annotated[UserBase, Depends(users.get_current_user)],
@@ -87,9 +102,10 @@ def change_user_role(
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
-    
+
     if current_user.user_uuid == user_uuid:
-        raise HTTPException(status.HTTP_403_FORBIDDEN,
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
             "Admin can't change their own role",
         )
 
@@ -110,7 +126,6 @@ def change_user_email(
         raise HTTPException(
             status.HTTP_403_FORBIDDEN, "You can only change your own email address"
         )
-
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
@@ -147,5 +162,3 @@ def change_user_password(
     users.change_password(session, user_uuid, user_modify_password.new_password)
 
     return {"status": "Ok"}
-
-#get users ->admin

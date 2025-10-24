@@ -52,9 +52,7 @@ def get_trips(
 
 
 @router.get("/{trip_uuid}", response_model=TripBase)
-def get_trip(
-    trip_uuid: str,
-    session: SessionDep):
+def get_trip(trip_uuid: str, session: SessionDep):
 
     db_trip = trips.get_trip(session, trip_uuid)
 

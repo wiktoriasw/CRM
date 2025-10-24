@@ -11,6 +11,7 @@ import models.news
 import models.insurance_policy
 import models.surveys
 
+
 class Trip(TimestampMixin, AuditUserMixin, Base):
     __tablename__ = "trip"
 

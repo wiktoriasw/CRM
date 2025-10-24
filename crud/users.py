@@ -27,16 +27,18 @@ def get_password_hash(password):
     return password_hash.hash(password)
 
 
-def _get_not_deleted_user(db: Session):
+def _get_not_deleted_users(db: Session):
     return db.query(users.User).filter(users.User.deleted_at == None)
 
+def get_users(db:Session):
+    return _get_not_deleted_users(db).all()
 
 def get_user_by_email(db, email: str):
-    return _get_not_deleted_user(db).filter(users.User.email == email).first()
+    return _get_not_deleted_users(db).filter(users.User.email == email).first()
 
 
 def get_user_by_uuid(db, user_uuid: str):
-    return _get_not_deleted_user(db).filter(users.User.user_uuid == user_uuid).first()
+    return _get_not_deleted_users(db).filter(users.User.user_uuid == user_uuid).first()
 
 
 def create_user(db, user: UserCreate):
