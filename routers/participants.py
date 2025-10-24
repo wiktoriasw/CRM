@@ -6,9 +6,11 @@ from sqlalchemy.exc import DataError
 from crud import participants, users
 from database import SessionDep
 from models import participants as ParticipantsModel
+from models import users as UserModel
+
 from schemas.participants import (ParticipantBase, ParticipantCreate,
                                   ParticipantModify)
-from schemas.users import User
+from schemas.users import User, UserBase
 
 router = APIRouter(prefix="/participants")
 user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
@@ -26,12 +28,14 @@ def parse_participant(
 @router.get("/", response_model=List[ParticipantBase])
 def get_partcipants(
     session: SessionDep,
+    _: Annotated[UserBase, Depends(users.get_admin_or_guide_user)],
     q: str | None = None,
     gender: str | None = None,
     meet_point: str | None = None,
     limit: int = 3,
     offset: int = 0,
 ):
+    
     if limit > 5:
         limit = 5
 
@@ -55,11 +59,19 @@ def get_partcipants(
 
 
 @router.get("/{participant_uuid}", response_model=ParticipantBase)
-def get_participant(session: SessionDep, participant_uuid: str):
+def get_participant(
+    session: SessionDep,
+    current_user: Annotated[UserBase, Depends(users.get_current_user)],
+    participant_uuid: str):
+
     db_participant = participants.get_participant(session, participant_uuid)
 
     if not db_participant:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Participant not found")
+    
+    if current_user.role == UserModel.UserRole.user and current_user.user_uuid != db_participant.user_uuid:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "You can only get your own data")
+
 
     return parse_participant(db_participant)
 
@@ -97,15 +109,19 @@ def modify_participant(
 
     if not db_participant:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Participant not exists")
+    
+    if current_user.role == UserModel.UserRole.user and current_user.user_uuid != db_participant.user_uuid:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "You can only modify your own data")
+
 
     return participants.modify_participant(
         session, participant, participant_uuid, current_user.user_uuid
     )
 
 
-@router.delete("/{participant_uuid}", response_model=ParticipantBase)
+@router.delete("/{participant_uuid}", response_model=ParticipantBase) 
 def delete_participant(
-    current_user: Annotated[User, Depends(users.get_current_user)],
+    current_user: Annotated[User, Depends(users.get_admin_user)],
     session: SessionDep,
     participant_uuid: str,
 ):

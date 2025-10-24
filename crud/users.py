@@ -151,3 +151,11 @@ def get_admin_user(current_user: Annotated[User, Depends(get_current_user)]):
         )
 
     return current_user
+
+
+def get_admin_or_guide_user(current_user: Annotated[User, Depends(get_current_user)]):
+    if current_user.role not in (users.UserRole.admin, users.UserRole.guide):
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED, "You don't have permissions"
+        )
+    
