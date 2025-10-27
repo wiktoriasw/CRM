@@ -1,5 +1,6 @@
 from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import ARRAY
+
 from models.utils import Base, get_uuid4
 
 

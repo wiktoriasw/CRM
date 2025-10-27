@@ -11,12 +11,10 @@ from sqlalchemy.orm import Session
 from configuration import ALGORITHM, SECRET_KEY
 from database import SessionDep
 from models import users
-from schemas.users import TokenData, UserCreate, User, UserModifyRole
+from schemas.users import TokenData, User, UserCreate, UserModifyRole
 
 password_hash = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
 
 
 def verify_password(plain_password, hashed_password):
@@ -30,8 +28,10 @@ def get_password_hash(password):
 def _get_not_deleted_users(db: Session):
     return db.query(users.User).filter(users.User.deleted_at == None)
 
-def get_users(db:Session):
+
+def get_users(db: Session):
     return _get_not_deleted_users(db).all()
+
 
 def get_user_by_email(db, email: str):
     return _get_not_deleted_users(db).filter(users.User.email == email).first()
@@ -157,7 +157,4 @@ def get_admin_user(current_user: Annotated[User, Depends(get_current_user)]):
 
 def get_admin_or_guide_user(current_user: Annotated[User, Depends(get_current_user)]):
     if current_user.role not in (users.UserRole.admin, users.UserRole.guide):
-        raise HTTPException(
-            status.HTTP_401_UNAUTHORIZED, "You don't have permissions"
-        )
-    
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "You don't have permissions")

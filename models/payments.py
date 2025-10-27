@@ -1,7 +1,8 @@
-from models.associate_tables import participants_payments_association_table
 from sqlalchemy import Column, Date, ForeignKey, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import DECIMAL
+
+from models.associate_tables import participants_payments_association_table
 from models.utils import Base, get_uuid4
 
 

@@ -11,7 +11,7 @@ class TripBase(SQLModel):
     description: str
     payment_schedule: str
     meet_points: list
-    background_photo: str
+    background_photo: str | None = None
 
 
 class TripCreate(SQLModel):

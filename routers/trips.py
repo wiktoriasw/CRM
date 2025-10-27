@@ -2,12 +2,16 @@ from datetime import datetime
 from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import FileResponse
 
 from crud import trips, users
 from database import SessionDep
 from models import trips as TripsModel
 from schemas.trips import TripBase, TripCreate, TripModify
 from schemas.users import User
+from schemas.utils import Status
+
+import os
 
 router = APIRouter(prefix="/trips")
 user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
@@ -98,3 +102,50 @@ def delete_trip(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
 
     return trips.delete_trip(session, trip_uuid, current_user.user_uuid)
+
+
+@router.get("/{trip_uuid}/background")
+def get_background(
+    trip_uuid: str,
+    session: SessionDep,
+):
+    db_trip = trips.get_trip(session, trip_uuid)
+    if not db_trip:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
+
+    file_extension = db_trip.background_photo
+    if not file_extension:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "The background photo does not exists"
+        )
+
+    background_path = "./backgrounds"
+    file_path = os.path.join(background_path, f"{trip_uuid}.{file_extension}")
+
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    
+
+@router.delete("/{trip_uuid}/background", response_model = Status)
+def delete_background(
+    trip_uuid: str,
+    _: Annotated[User, Depends(users.get_admin_user)],
+    session: SessionDep,
+):
+    db_trip = trips.get_trip(session, trip_uuid)
+    if not db_trip:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
+
+    file_extension = db_trip.background_photo
+    if not file_extension:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "The background photo does not exists"
+        )
+    
+    background_path = "./backgrounds"
+    file_path = os.path.join(background_path, f"{trip_uuid}.{file_extension}")
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    trips.delete_background(session, trip_uuid)
+
+    return {"status": "ok"}

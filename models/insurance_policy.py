@@ -1,5 +1,6 @@
 from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.orm import relationship
+
 from models.utils import Base, get_uuid4
 
 

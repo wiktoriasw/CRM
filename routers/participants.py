@@ -7,8 +7,8 @@ from crud import participants, users
 from database import SessionDep
 from models import participants as ParticipantsModel
 from models import users as UserModel
-
-from schemas.participants import ParticipantBase, ParticipantCreate, ParticipantModify
+from schemas.participants import (ParticipantBase, ParticipantCreate,
+                                  ParticipantModify)
 from schemas.users import User, UserBase
 
 router = APIRouter(prefix="/participants")

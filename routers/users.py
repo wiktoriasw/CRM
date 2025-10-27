@@ -9,17 +9,10 @@ from configuration import ACCESS_TOKEN_EXPIRE_MINUTES
 from crud import users
 from database import SessionDep
 from models.users import User as UserModel
-from schemas.users import (
-    Status,
-    Token,
-    UserBase,
-    UserCreate,
-    User,
-    UserModifyEmail,
-    UserModifyPassword,
-    UserModifyRole,
-    UserWithRole,
-)
+from schemas.users import (Token, User, UserBase, UserCreate,
+                           UserModifyEmail, UserModifyPassword, UserModifyRole,
+                           UserWithRole)
+from schemas.utils import Status
 
 router = APIRouter()
 

@@ -1,7 +1,8 @@
-from models.associate_tables import trips_surveys
 from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
+
+from models.associate_tables import trips_surveys
 from models.utils import Base, get_uuid4
 
 

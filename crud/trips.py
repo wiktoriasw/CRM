@@ -93,3 +93,26 @@ def delete_trip(db: Session, trip_uuid: str, user_uuid: str):
     db.refresh(db_trip)
 
     return db_trip
+
+
+def add_background(
+    db: Session,
+    trip_uuid: str,
+    ext: str,
+):
+    db_trip = get_trip(db, trip_uuid)
+    db_trip.background_photo = ext
+    db.commit()
+    db.refresh(db_trip)
+
+    return db_trip
+
+
+def delete_background(
+    db: Session,
+    trip_uuid: str,
+):
+    db_trip = get_trip(db, trip_uuid)
+    db_trip.background_photo = None
+    db.commit()
+    db.refresh(db_trip)

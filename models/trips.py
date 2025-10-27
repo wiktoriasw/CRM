@@ -2,14 +2,13 @@ from sqlalchemy import Column, Date, ForeignKey, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 
+import models.insurance_policy
+import models.news
+import models.payments
+import models.surveys
 from models.associate_tables import trips_surveys
 from models.mixin import AuditUserMixin, TimestampMixin
 from models.utils import Base, get_uuid4
-
-import models.payments
-import models.news
-import models.insurance_policy
-import models.surveys
 
 
 class Trip(TimestampMixin, AuditUserMixin, Base):
@@ -23,7 +22,7 @@ class Trip(TimestampMixin, AuditUserMixin, Base):
     description = Column(String, nullable=False)
     payment_schedule = Column(String, nullable=False)
     meet_points = Column(ARRAY(String), nullable=False)
-    background_photo = Column(String, nullable=False)
+    background_photo = Column(String)
     user_uuid = Column(String, ForeignKey("user.user_uuid"), nullable=False)
 
     participants = relationship("Participant", back_populates="trip")

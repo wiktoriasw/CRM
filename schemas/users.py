@@ -3,10 +3,6 @@ from sqlmodel import SQLModel
 from models.users import UserRole
 
 
-class Status(SQLModel):
-    status: str
-
-
 class User(SQLModel):
     user_uuid: str
     role: str
