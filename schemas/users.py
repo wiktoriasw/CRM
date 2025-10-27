@@ -1,7 +1,5 @@
 from sqlmodel import SQLModel
 
-from models.users import UserRole
-
 
 class User(SQLModel):
     user_uuid: str
@@ -21,7 +19,7 @@ class UserModifyEmail(SQLModel):
 
 
 class UserModifyRole(SQLModel):
-    new_role: UserRole
+    new_role: str
 
 
 class UserModifyPassword(SQLModel):
