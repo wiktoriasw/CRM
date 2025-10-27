@@ -39,7 +39,7 @@ def participants_with_filters(
 
     if meet_point == "NULL":
         query = query.filter(
-            func.lower(participants.Participant.chosen_meet_point) == None
+            participants.Participant.chosen_meet_point == None
         )
     elif meet_point:
         query = query.filter(
