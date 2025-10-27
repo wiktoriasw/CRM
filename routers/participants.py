@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import DataError
 
 from crud import participants, users
-from database import SessionDep
+from db import SessionDep
+from dependencies.users import (UserDep, get_admin_or_guide_user,
+                                get_admin_user, get_current_user)
 from models import participants as ParticipantsModel
 from models import users as UserModel
 from schemas.participants import (ParticipantBase, ParticipantCreate,
@@ -18,16 +20,14 @@ user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
 def parse_participant(
     participant: ParticipantsModel.Participant,
 ) -> ParticipantsModel.Participant:
-    return {
-        **participant.__dict__,
-        "gender": participant.gender.name,
-    }
+    participant.gender = participant.gender.name
+    return participant
 
 
 @router.get("/", response_model=List[ParticipantBase])
 def get_partcipants(
     session: SessionDep,
-    _: Annotated[UserBase, Depends(users.get_admin_or_guide_user)],
+    _: Annotated[UserBase, Depends(get_admin_or_guide_user)],
     q: str | None = None,
     gender: str | None = None,
     meet_point: str | None = None,
@@ -60,7 +60,7 @@ def get_partcipants(
 @router.get("/{participant_uuid}", response_model=ParticipantBase)
 def get_participant(
     session: SessionDep,
-    current_user: Annotated[UserBase, Depends(users.get_current_user)],
+    current_user: UserDep,
     participant_uuid: str,
 ):
 
@@ -81,7 +81,7 @@ def get_participant(
 @router.post("/", response_model=ParticipantCreate)
 def create_participant(
     participant: ParticipantCreate,
-    current_user: Annotated[User, Depends(users.get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     session: SessionDep,
 ):
 
@@ -102,7 +102,7 @@ def create_participant(
 @router.patch("/{participant_uuid}", response_model=ParticipantModify)
 def modify_participant(
     participant: ParticipantModify,
-    current_user: Annotated[User, Depends(users.get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     session: SessionDep,
     participant_uuid: str,
 ):
@@ -120,14 +120,16 @@ def modify_participant(
             status.HTTP_403_FORBIDDEN, "You can only modify your own data"
         )
 
-    return participants.modify_participant(
+    participant = participants.modify_participant(
         session, participant, participant_uuid, current_user.user_uuid
     )
+
+    return parse_participant(participant)
 
 
 @router.delete("/{participant_uuid}", response_model=ParticipantBase)
 def delete_participant(
-    current_user: Annotated[User, Depends(users.get_admin_user)],
+    current_user: Annotated[User, Depends(get_admin_user)],
     session: SessionDep,
     participant_uuid: str,
 ):

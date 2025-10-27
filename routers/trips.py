@@ -1,17 +1,17 @@
+import os
 from datetime import datetime
 from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 
-from crud import trips, users
-from database import SessionDep
+from crud import trips
+from db import SessionDep
+from dependencies.users import get_admin_user
 from models import trips as TripsModel
 from schemas.trips import TripBase, TripCreate, TripModify
 from schemas.users import User
 from schemas.utils import Status
-
-import os
 
 router = APIRouter(prefix="/trips")
 user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
@@ -69,7 +69,7 @@ def get_trip(trip_uuid: str, session: SessionDep):
 def create_trip(
     trip: TripCreate,
     session: SessionDep,
-    current_user: Annotated[User, Depends(users.get_admin_user)],
+    current_user: Annotated[User, Depends(get_admin_user)],
 ):
 
     return trips.create_trip(session, trip, current_user.user_uuid)
@@ -79,7 +79,7 @@ def create_trip(
 def modify_trip(
     trip: TripModify,
     session: SessionDep,
-    current_user: Annotated[User, Depends(users.get_admin_user)],
+    current_user: Annotated[User, Depends(get_admin_user)],
     trip_uuid: str,
 ):
 
@@ -93,7 +93,7 @@ def modify_trip(
 @router.delete("/{trip_uuid}", response_model=TripBase)
 def delete_trip(
     session: SessionDep,
-    current_user: Annotated[User, Depends(users.get_admin_user)],
+    current_user: Annotated[User, Depends(get_admin_user)],
     trip_uuid: str,
 ):
 
@@ -115,7 +115,8 @@ def get_background(
 
     file_extension = db_trip.background_photo
     if not file_extension:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "The background photo does not exists"
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, "The background photo does not exists"
         )
 
     background_path = "./backgrounds"
@@ -123,12 +124,12 @@ def get_background(
 
     if os.path.exists(file_path):
         return FileResponse(file_path)
-    
 
-@router.delete("/{trip_uuid}/background", response_model = Status)
+
+@router.delete("/{trip_uuid}/background", response_model=Status)
 def delete_background(
     trip_uuid: str,
-    _: Annotated[User, Depends(users.get_admin_user)],
+    _: Annotated[User, Depends(get_admin_user)],
     session: SessionDep,
 ):
     db_trip = trips.get_trip(session, trip_uuid)
@@ -137,9 +138,10 @@ def delete_background(
 
     file_extension = db_trip.background_photo
     if not file_extension:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "The background photo does not exists"
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, "The background photo does not exists"
         )
-    
+
     background_path = "./backgrounds"
     file_path = os.path.join(background_path, f"{trip_uuid}.{file_extension}")
 

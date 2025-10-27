@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from database import create_db_and_tables
+from db import create_db_and_tables
 from routers import participants, trips, users
 
 app = FastAPI()
