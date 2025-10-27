@@ -103,52 +103,35 @@ def change_user_role(
     return parse_user(users.change_role(session, user_uuid, user.new_role))
 
 
-@router.patch("/users/{user_uuid}/email", response_model=Status)
+@router.patch("/users/me/email", response_model=Status)
 def change_user_email(
     user: UserModifyEmail,
     current_user: Annotated[UserBase, Depends(get_current_user)],
     session: SessionDep,
-    user_uuid: str,
 ):
-
-    db_user = users.get_user_by_uuid(session, user_uuid)
-
-    if db_user.user_uuid != current_user.user_uuid:
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN, "You can only change your own email address"
-        )
-
-    if not db_user:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
-
     try:
-        users.change_email(session, user_uuid, user.new_email)
+        users.change_email(session, current_user.user_uuid, user.new_email)
         return {"status": "ok"}
     except IntegrityError:
         raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "Email already exists")
 
 
-@router.patch("/users/{user_uuid}/password", response_model=Status)
+@router.patch("/users/me/password", response_model=Status)
 def change_user_password(
     user_modify_password: UserModifyPassword,
-    current_user: Annotated[UserBase, Depends(users.get_current_user)],
+    current_user: Annotated[UserBase, Depends(get_current_user)],
     session: SessionDep,
 ):
-    db_user = users.get_user_by_uuid(session, user_uuid)
+    db_user = users.get_user_by_uuid(session, current_user.user_uuid)
 
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
-
-    if db_user.user_uuid != current_user.user_uuid:
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN, "You can change only your own password"
-        )
 
     if not users.verify_password(
         user_modify_password.old_password, db_user.hashed_password
     ):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Incorrect current password.")
 
-    users.change_password(session, user_uuid, user_modify_password.new_password)
+    users.change_password(session, current_user.user_uuid, user_modify_password.new_password)
 
     return {"status": "Ok"}
