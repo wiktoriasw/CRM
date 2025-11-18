@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 
 
 class TimestampMixin:
-    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    deleted_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=True, default=func.now())
     updated_at = Column(
         DateTime(timezone=True), nullable=True, default=func.now(), onupdate=func.now()

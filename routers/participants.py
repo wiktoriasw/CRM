@@ -10,8 +10,10 @@ from dependencies.users import (UserDep, get_admin_or_guide_user,
 from models import participants as ParticipantsModel
 from models import users as UserModel
 from schemas.participants import (ParticipantBase, ParticipantCreate,
-                                  ParticipantModify)
+                                  ParticipantCreateResponse, ParticipantModify,
+                                  ParticipantModifyResponse)
 from schemas.users import User, UserBase
+from schemas.utils import Status
 
 router = APIRouter(prefix="/participants")
 user_uuid = "576590e1-3f56-4a0a-aec5-5d84a319988f"
@@ -78,7 +80,7 @@ def get_participant(
     return parse_participant(db_participant)
 
 
-@router.post("/", response_model=ParticipantCreate)
+@router.post("/", response_model=ParticipantCreateResponse)
 def create_participant(
     participant: ParticipantCreate,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -99,7 +101,7 @@ def create_participant(
         )
 
 
-@router.patch("/{participant_uuid}", response_model=ParticipantModify)
+@router.patch("/{participant_uuid}", response_model=ParticipantModifyResponse)
 def modify_participant(
     participant: ParticipantModify,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -127,7 +129,7 @@ def modify_participant(
     return parse_participant(participant)
 
 
-@router.delete("/{participant_uuid}", response_model=ParticipantBase)
+@router.delete("/{participant_uuid}", response_model=Status)
 def delete_participant(
     current_user: Annotated[User, Depends(get_admin_user)],
     session: SessionDep,
@@ -138,8 +140,10 @@ def delete_participant(
     if not db_participant:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Participant not found")
 
-    return parse_participant(
+    parse_participant(
         participants.delete_participant(
             session, participant_uuid, current_user.user_uuid
         )
     )
+
+    return {"status": "ok"}

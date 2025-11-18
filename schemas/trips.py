@@ -5,6 +5,7 @@ from sqlmodel import SQLModel
 
 class TripBase(SQLModel):
     name: str
+    trip_uuid: str
     category: str
     start_date: date
     end_date: date
@@ -25,6 +26,10 @@ class TripCreate(SQLModel):
     background_photo: str
 
 
+class TripCreateResponse(TripCreate):
+    trip_uuid: str
+
+
 class TripModify(SQLModel):
     name: str | None = None
     category: str | None = None
@@ -34,3 +39,7 @@ class TripModify(SQLModel):
     payment_schedule: str | None = None
     meet_points: list | None = None
     background_photo: str | None = None
+
+
+class TripModifyResponse(TripModify):
+    trip_uuid: str

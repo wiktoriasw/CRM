@@ -5,6 +5,7 @@ from sqlmodel import SQLModel
 
 class ParticipantBase(SQLModel):
     name: str
+    participant_uuid: str
     surname: str
     email: str
     phone: str
@@ -28,6 +29,10 @@ class ParticipantCreate(SQLModel):
     comments: str | None = None
 
 
+class ParticipantCreateResponse(ParticipantCreate):
+    participant_uuid: str
+
+
 class ParticipantModify(SQLModel):
     name: str | None = None
     surname: str | None = None
@@ -38,3 +43,7 @@ class ParticipantModify(SQLModel):
     chosen_meet_point: str | None = None
     group_code: str | None = None
     comments: str | None = None
+
+
+class ParticipantModifyResponse(ParticipantModify):
+    participant_uuid: str

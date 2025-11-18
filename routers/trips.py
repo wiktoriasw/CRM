@@ -9,7 +9,8 @@ from crud import trips
 from db import SessionDep
 from dependencies.users import get_admin_user
 from models import trips as TripsModel
-from schemas.trips import TripBase, TripCreate, TripModify
+from schemas.trips import (TripBase, TripCreate, TripCreateResponse,
+                           TripModify, TripModifyResponse)
 from schemas.users import User
 from schemas.utils import Status
 
@@ -65,7 +66,7 @@ def get_trip(trip_uuid: str, session: SessionDep):
     return db_trip
 
 
-@router.post("", response_model=TripCreate)
+@router.post("", response_model=TripCreateResponse)
 def create_trip(
     trip: TripCreate,
     session: SessionDep,
@@ -75,7 +76,7 @@ def create_trip(
     return trips.create_trip(session, trip, current_user.user_uuid)
 
 
-@router.patch("/{trip_uuid}", response_model=TripModify)
+@router.patch("/{trip_uuid}", response_model=TripModifyResponse)
 def modify_trip(
     trip: TripModify,
     session: SessionDep,
@@ -90,7 +91,7 @@ def modify_trip(
     return trips.modify_trip(session, trip, trip_uuid, current_user.user_uuid)
 
 
-@router.delete("/{trip_uuid}", response_model=TripBase)
+@router.delete("/{trip_uuid}", response_model=Status)
 def delete_trip(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_admin_user)],
@@ -101,7 +102,9 @@ def delete_trip(
     if not db_trip:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
 
-    return trips.delete_trip(session, trip_uuid, current_user.user_uuid)
+    trips.delete_trip(session, trip_uuid, current_user.user_uuid)
+
+    return {"status": "ok"}
 
 
 @router.get("/{trip_uuid}/background")

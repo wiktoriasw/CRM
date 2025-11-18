@@ -2,7 +2,7 @@ from sqlalchemy import Column, Date, ForeignKey, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 
-import models.insurance_policy
+import models.insurance_policy  # pylint: disable=F401
 import models.news
 import models.payments
 import models.surveys

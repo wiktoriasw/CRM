@@ -10,6 +10,7 @@ from crud import users
 from db import SessionDep
 from dependencies.users import get_admin_user, get_current_user
 from models.users import User as UserModel
+from models.users import UserRole
 from schemas.users import (Token, UserBase, UserCreate, UserModifyEmail,
                            UserModifyPassword, UserModifyRole, UserWithRole)
 from schemas.utils import Status
@@ -66,7 +67,7 @@ def create_user(user: UserCreate, session: SessionDep):
     return parse_user(users.create_user(session, user))
 
 
-@router.delete("/users/{user_uuid}", response_model=UserWithRole)  # admin
+@router.delete("/users/{user_uuid}", response_model=Status)
 def delete_user(
     session: SessionDep,
     current_user: Annotated[UserBase, Depends(get_current_user)],
@@ -74,11 +75,18 @@ def delete_user(
 ):
 
     db_user = users.get_user_by_uuid(session, user_uuid)
-
+    print(db_user.role)
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
-    return parse_user(users.delete_user(session, current_user.user_uuid))
+    if db_user.role == UserRole.admin:
+        raise HTTPException(
+            status.HTTP_405_METHOD_NOT_ALLOWED, "Admin can't delete their account"
+        )
+
+    parse_user(users.delete_user(session, current_user.user_uuid))
+
+    return {"status": "Ok"}
 
 
 @router.patch("/users/{user_uuid}/role", response_model=UserWithRole)
@@ -132,6 +140,8 @@ def change_user_password(
     ):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Incorrect current password.")
 
-    users.change_password(session, current_user.user_uuid, user_modify_password.new_password)
+    users.change_password(
+        session, current_user.user_uuid, user_modify_password.new_password
+    )
 
     return {"status": "Ok"}

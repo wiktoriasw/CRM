@@ -12,6 +12,7 @@ class UserBase(SQLModel):
 
 class UserWithRole(UserBase):
     role: str
+    user_uuid: str
 
 
 class UserModifyEmail(SQLModel):
