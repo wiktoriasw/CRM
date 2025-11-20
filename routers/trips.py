@@ -2,9 +2,9 @@ import os
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, UploadFile
 from fastapi.responses import FileResponse
-
+from PIL import Image
 from crud import trips
 from db import SessionDep
 from dependencies.users import AdminDep
@@ -153,3 +153,51 @@ def delete_background(
     trips.delete_background(session, trip_uuid)
 
     return {"status": "ok"}
+
+
+@router.post("/{trip_uuid}/background")
+def add_background(
+    trip_uuid: str,
+    _: AdminDep,
+    file: UploadFile,
+    session: SessionDep):
+
+    db_trip = trips.get_trip(session, trip_uuid)
+    if not db_trip:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Trip not found")
+    
+    if file.size > 10 * 1024 * 1024:
+        raise HTTPException(
+            status.HTTP_406_NOT_ACCEPTABLE, "The file must be smaller than 10 MB"
+        )
+
+    if file.content_type not in ["image/webp", "image/png", "image/jpeg"]:
+        raise HTTPException(
+            status.HTTP_406_NOT_ACCEPTABLE, "The file should be webp, png or jpg"
+        )
+    
+    image = Image.open(file.file)
+
+    width, height = image.size
+
+    if width < 300 or height < 300:
+        raise HTTPException(
+            status.HTTP_406_NOT_ACCEPTABLE,
+            "Image should be bigger than (300,300)",
+        )
+
+    file_extension = file.content_type[6:]
+
+    background_path = "./backgrounds"
+    if not os.path.isdir(background_path):
+        os.mkdir(background_path)
+
+    image.save(os.path.join(background_path, f"{trip_uuid}.{file_extension}"))
+
+    trips.add_background(session, trip_uuid, file_extension)
+
+    return {
+        "filename": file.filename,
+        "size": file.size,
+        "content_type": file.content_type,
+    }
