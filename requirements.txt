@@ -4,3 +4,5 @@ pwdlib==0.2.1
 python_jose==3.5.0
 SQLAlchemy==2.0.36
 sqlmodel==0.0.27
+psycopg2-binary==2.9.11
+pwdlib[argon2]==0.2.1

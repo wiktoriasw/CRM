@@ -18,13 +18,20 @@ git clone https://github.com/wiktoriasw/CRM.git
 cd CRM
 ```
 
-3. Install required libraries:
+3. Create and activate your virtual environment.
+```bash
+python -m venv ./.venv #create
+``` 
+```bash
+source source ./.venv/bin/activate  #activate (Linux/macOS) 
+```
+4. Install required libraries in your virtual environment:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Configure the SECRET_KEY — Add `SECRET_KEY` to your configuration.py file:
+5. Configure the SECRET_KEY — Add `SECRET_KEY` to your configuration.py file:
 
 - `SECRET_KEY` — JWT secret key. **No default value; you need to assign it.**
    
@@ -37,7 +44,7 @@ pip install -r requirements.txt
         SECRET_KEY=4jfjir...
         ```
 
-5. Run the server with:
+6. Run the server with:
 
 ```bash
     fastapi dev main.py
