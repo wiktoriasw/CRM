@@ -10,11 +10,10 @@ from crud import users
 from db import SessionDep
 from dependencies.users import AdminDep, UserDep
 from models.users import User as UserModel
-from models.users import UserRole
+from models.users import UserRole, UserGender
 from schemas.users import (Token, UserCreate, UserModifyEmail,
                            UserModifyPassword, UserModifyRole, UserWithRole)
 from schemas.utils import Status
-
 router = APIRouter()
 
 
@@ -107,6 +106,11 @@ def change_user_role(
             status.HTTP_403_FORBIDDEN,
             "Admin can't change their own role",
         )
+
+    if user.new_role not in UserGender.__members__:
+        raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Given gender not found"
+            )
 
     return parse_user(users.change_role(session, user_uuid, user.new_role))
 
