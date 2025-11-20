@@ -23,7 +23,6 @@ class TripCreate(SQLModel):
     description: str
     payment_schedule: str
     meet_points: list
-    background_photo: str
 
 
 class TripCreateResponse(TripCreate):

@@ -1,18 +1,16 @@
-from typing import Annotated, List
+from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from sqlalchemy.exc import DataError
 
 from crud import participants, users
 from db import SessionDep
-from dependencies.users import (UserDep, get_admin_or_guide_user,
-                                get_admin_user, get_current_user)
+from dependencies.users import AdminDep, AdminGuideDep, UserDep
 from models import participants as ParticipantsModel
 from models import users as UserModel
 from schemas.participants import (ParticipantBase, ParticipantCreate,
                                   ParticipantCreateResponse, ParticipantModify,
                                   ParticipantModifyResponse)
-from schemas.users import User, UserBase
 from schemas.utils import Status
 
 router = APIRouter(prefix="/participants")
@@ -29,7 +27,7 @@ def parse_participant(
 @router.get("/", response_model=List[ParticipantBase])
 def get_partcipants(
     session: SessionDep,
-    _: Annotated[UserBase, Depends(get_admin_or_guide_user)],
+    _: AdminGuideDep,
     q: str | None = None,
     gender: str | None = None,
     meet_point: str | None = None,
@@ -83,7 +81,7 @@ def get_participant(
 @router.post("/", response_model=ParticipantCreateResponse)
 def create_participant(
     participant: ParticipantCreate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: UserDep,
     session: SessionDep,
 ):
 
@@ -104,7 +102,7 @@ def create_participant(
 @router.patch("/{participant_uuid}", response_model=ParticipantModifyResponse)
 def modify_participant(
     participant: ParticipantModify,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: UserDep,
     session: SessionDep,
     participant_uuid: str,
 ):
@@ -131,7 +129,7 @@ def modify_participant(
 
 @router.delete("/{participant_uuid}", response_model=Status)
 def delete_participant(
-    current_user: Annotated[User, Depends(get_admin_user)],
+    current_user: AdminDep,
     session: SessionDep,
     participant_uuid: str,
 ):

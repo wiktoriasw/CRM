@@ -54,4 +54,6 @@ def get_admin_or_guide_user(current_user: Annotated[User, Depends(get_current_us
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "You don't have permissions")
 
 
-UserDep = Annotated[UserBase, Depends(get_current_user)]
+UserDep = Annotated[User, Depends(get_current_user)]
+AdminDep = Annotated[UserBase, Depends(get_admin_user)]
+AdminGuideDep = Annotated[UserBase, Depends(get_admin_or_guide_user)]

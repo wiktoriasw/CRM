@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 
 from sqlmodel import SQLModel
 
@@ -10,7 +10,7 @@ class ParticipantBase(SQLModel):
     email: str
     phone: str
     gender: str
-    birth_date: datetime
+    birth_date: date
     chosen_meet_point: str | None
     group_code: str | None
     comments: str | None
@@ -22,7 +22,7 @@ class ParticipantCreate(SQLModel):
     email: str
     phone: str
     gender: str
-    birth_date: datetime
+    birth_date: date
     trip_uuid: str
     chosen_meet_point: str | None = None
     group_code: str | None = None
@@ -39,7 +39,7 @@ class ParticipantModify(SQLModel):
     email: str | None = None
     phone: str | None = None
     gender: str | None = None
-    birth_date: datetime | None = None
+    birth_date: date | None = None
     chosen_meet_point: str | None = None
     group_code: str | None = None
     comments: str | None = None

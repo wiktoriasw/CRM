@@ -1,17 +1,16 @@
 import os
 from datetime import datetime
-from typing import Annotated, List
+from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import FileResponse
 
 from crud import trips
 from db import SessionDep
-from dependencies.users import get_admin_user
+from dependencies.users import AdminDep
 from models import trips as TripsModel
 from schemas.trips import (TripBase, TripCreate, TripCreateResponse,
                            TripModify, TripModifyResponse)
-from schemas.users import User
 from schemas.utils import Status
 
 router = APIRouter(prefix="/trips")
@@ -70,7 +69,7 @@ def get_trip(trip_uuid: str, session: SessionDep):
 def create_trip(
     trip: TripCreate,
     session: SessionDep,
-    current_user: Annotated[User, Depends(get_admin_user)],
+    current_user: AdminDep,
 ):
 
     return trips.create_trip(session, trip, current_user.user_uuid)
@@ -80,7 +79,7 @@ def create_trip(
 def modify_trip(
     trip: TripModify,
     session: SessionDep,
-    current_user: Annotated[User, Depends(get_admin_user)],
+    current_user: AdminDep,
     trip_uuid: str,
 ):
 
@@ -94,7 +93,7 @@ def modify_trip(
 @router.delete("/{trip_uuid}", response_model=Status)
 def delete_trip(
     session: SessionDep,
-    current_user: Annotated[User, Depends(get_admin_user)],
+    current_user: AdminDep,
     trip_uuid: str,
 ):
 
@@ -132,7 +131,7 @@ def get_background(
 @router.delete("/{trip_uuid}/background", response_model=Status)
 def delete_background(
     trip_uuid: str,
-    _: Annotated[User, Depends(get_admin_user)],
+    _: AdminDep,
     session: SessionDep,
 ):
     db_trip = trips.get_trip(session, trip_uuid)

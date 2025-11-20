@@ -8,10 +8,10 @@ from sqlalchemy.exc import IntegrityError
 from configuration import ACCESS_TOKEN_EXPIRE_MINUTES
 from crud import users
 from db import SessionDep
-from dependencies.users import get_admin_user, get_current_user
+from dependencies.users import AdminDep, UserDep
 from models.users import User as UserModel
 from models.users import UserRole
-from schemas.users import (Token, UserBase, UserCreate, UserModifyEmail,
+from schemas.users import (Token, UserCreate, UserModifyEmail,
                            UserModifyPassword, UserModifyRole, UserWithRole)
 from schemas.utils import Status
 
@@ -47,13 +47,13 @@ def login_for_access_token(
 
 @router.get("/users/me/", response_model=UserWithRole)
 def read_users_me(
-    current_user: Annotated[UserBase, Depends(get_current_user)],
+    current_user: UserDep,
 ):
     return parse_user(current_user)
 
 
 @router.get("/users", response_model=List[UserWithRole])
-def get_users(session: SessionDep, _: Annotated[UserBase, Depends(get_admin_user)]):
+def get_users(session: SessionDep, _: AdminDep):
     return map(parse_user, users.get_users(session))
 
 
@@ -70,12 +70,12 @@ def create_user(user: UserCreate, session: SessionDep):
 @router.delete("/users/{user_uuid}", response_model=Status)
 def delete_user(
     session: SessionDep,
-    current_user: Annotated[UserBase, Depends(get_current_user)],
+    current_user: UserDep,
     user_uuid: str,
 ):
 
     db_user = users.get_user_by_uuid(session, user_uuid)
-    print(db_user.role)
+
     if not db_user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
@@ -92,7 +92,7 @@ def delete_user(
 @router.patch("/users/{user_uuid}/role", response_model=UserWithRole)
 def change_user_role(
     user: UserModifyRole,
-    current_user: Annotated[UserBase, Depends(get_admin_user)],
+    current_user: AdminDep,
     session: SessionDep,
     user_uuid: str,
 ):
@@ -114,7 +114,7 @@ def change_user_role(
 @router.patch("/users/me/email", response_model=Status)
 def change_user_email(
     user: UserModifyEmail,
-    current_user: Annotated[UserBase, Depends(get_current_user)],
+    current_user: UserDep,
     session: SessionDep,
 ):
     try:
@@ -127,7 +127,7 @@ def change_user_email(
 @router.patch("/users/me/password", response_model=Status)
 def change_user_password(
     user_modify_password: UserModifyPassword,
-    current_user: Annotated[UserBase, Depends(get_current_user)],
+    current_user: UserDep,
     session: SessionDep,
 ):
     db_user = users.get_user_by_uuid(session, current_user.user_uuid)
